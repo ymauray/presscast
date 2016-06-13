@@ -33,13 +33,19 @@ TAG;
 	}
 } );
 
-add_action('wp_ajax_presscast_add_track', function() {
-	error_log("add track : " . $_REQUEST['title'], 4);
-	error_log("add track : " . $_REQUEST['album'], 4);
-	error_log("add track : " . $_REQUEST['publication'], 4);
-	error_log("add track : " . $_REQUEST['buylink'], 4);
-	wp_die();
-});
+add_action( 'wp_ajax_presscast_add_track', function () {
+	global $wpdb;
+	$sql    = $wpdb->prepare( "insert into {$wpdb->prefix}presscast_tracks(artist_id, title, album, publication_year, buy_link) values(%d, %s, %s, %d, %s)", $_REQUEST['artist'], $_REQUEST['title'], $_REQUEST['album'], $_REQUEST['publication'], $_REQUEST['buylink'] );
+	$result = $wpdb->query( $sql );
+	if ( $result === false ) {
+		$return = array( 'status' => 'error', 'sql' => $sql, 'message' => $wpdb->last_error );
+	} else {
+		$sql    = $wpdb->prepare( "select * from {$wpdb->prefix}presscast_tracks where artist_id = %d order by id DESC", $_REQUEST['artist'] );
+		$tracks = $wpdb->get_results( $sql );
+		$return = array( 'status' => 'ok', 'tracks' => $tracks );
+	}
+	wp_die( json_encode( $return ) );
+} );
 
 /*
  * Register new post type
@@ -130,7 +136,6 @@ add_action( 'init', function () {
 }, 0 );
 
 add_action( 'add_meta_boxes', function () {
-	error_log( json_encode( get_current_screen() ), 4 );
 	add_meta_box( 'artist_website_box', __( 'Constacts', 'presscast' ), function ( $post ) {
 		wp_nonce_field( plugin_basename( __FILE__ ), 'artist_website_box_content_nonce' );
 		$artist_website  = get_post_meta( $post->ID, 'artist_website', true );
@@ -141,12 +146,17 @@ add_action( 'add_meta_boxes', function () {
 		echo ob_get_clean();
 	}, 'artist', 'normal' );
 
-	add_meta_box( 'artist_tracks_box', __( 'Tracks', 'presscast' ), function ( $post ) {
-		wp_nonce_field( plugin_basename( __FILE__ ), 'artist_tracks_box_content_nonce' );
-		ob_start();
-		include( dirname( __FILE__ ) . '/boxes/artist_tracks.php' );
-		echo ob_get_clean();
-	}, 'artist', 'normal' );
+	if ( get_current_screen()->id == 'artist' && get_current_screen()->action != 'add' ) {
+		add_meta_box( 'artist_tracks_box', __( 'Tracks', 'presscast' ), function ( $post ) {
+			global $wpdb;
+			$sql    = $wpdb->prepare( "select * from {$wpdb->prefix}presscast_tracks where artist_id = %d order by id ASC", $post->ID );
+			$tracks = $wpdb->get_results( $sql );
+			wp_nonce_field( plugin_basename( __FILE__ ), 'artist_tracks_box_content_nonce' );
+			ob_start();
+			include( dirname( __FILE__ ) . '/boxes/artist_tracks.php' );
+			echo ob_get_clean();
+		}, 'artist', 'normal' );
+	}
 } );
 
 /**

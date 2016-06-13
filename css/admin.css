@@ -28,3 +28,13 @@
 .presscast table.table td button {
     width: 100%;
 }
+
+.presscast table.table tr.data td {
+    padding: 0;
+}
+
+.presscast table.table tr.data td div {
+    border: 1px solid transparent;
+    margin: 1px;
+    padding: 3px 5px;
+}
