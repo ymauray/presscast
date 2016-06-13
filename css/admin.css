@@ -1,0 +1,30 @@
+/**
+ * CSS file for the admin part of PressCast
+ */
+#artist-main-meta {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -5px;
+}
+
+.artist-meta {
+    /*flex-grow: 1;*/
+    width: 33%;
+}
+
+.artist-meta .form-input {
+    margin: 0 5px;
+}
+
+.artist-meta input {
+    width: 100%;
+}
+
+.presscast table.table {
+    width: 100%;
+}
+
+.presscast table.table td input,
+.presscast table.table td button {
+    width: 100%;
+}
