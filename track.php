@@ -1,0 +1,1 @@
+<li><?php the_track_artist_link(); ?> - <?php the_track_title(); ?> (<a style="font-style: oblique;" href="<?php echo get_the_track_buy_link(); ?>"><?php the_track_album(); ?></a>, <?php the_track_publication(); ?>)</li>
